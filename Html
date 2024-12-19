@@ -1,1 +1,186 @@
-jogo.html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape do Labirinto (Mobile)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1d1f21;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #game-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      display: flex;
+      flex-wrap: wrap;
+      border: 3px solid #ffffff;
+      background-color: #282c34;
+    }
+    .cell {
+      width: 20%;
+      height: 20%;
+      box-sizing: border-box;
+      border: 1px solid #333;
+    }
+    .wall {
+      background-color: #444;
+    }
+    .player {
+      background-color: #ff5733;
+    }
+    .exit {
+      background-color: #4caf50;
+    }
+    #controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .row {
+      display: flex;
+    }
+    .control-btn {
+      width: 60px;
+      height: 60px;
+      margin: 5px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #ff5733;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .control-btn:active {
+      background-color: #ff784e;
+    }
+    #scoreboard {
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+    #game-over {
+      display: none;
+      font-size: 24px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreboard">Tempo Restante: <span id="timer">60</span></div>
+  <div id="game-container"></div>
+  <div id="controls">
+    <div class="row">
+      <button class="control-btn" onclick="movePlayer('ArrowUp')">↑</button>
+    </div>
+    <div class="row">
+      <button class="control-btn" onclick="movePlayer('ArrowLeft')">←</button>
+      <button class="control-btn" onclick="movePlayer('ArrowDown')">↓</button>
+      <button class="control-btn" onclick="movePlayer('ArrowRight')">→</button>
+    </div>
+  </div>
+  <div id="game-over">Fim de Jogo! <br><button onclick="startGame()">Jogar Novamente</button></div>
+
+  <script>
+    const container = document.getElementById("game-container");
+    const scoreboard = document.getElementById("scoreboard");
+    const timerDisplay = document.getElementById("timer");
+    const gameOverDisplay = document.getElementById("game-over");
+
+    const gridSize = 25; // Total de células no grid (5x5)
+    const cells = [];
+    let playerPosition = 0;
+    let exitPosition = gridSize - 1;
+    let timeRemaining = 60;
+    let timer;
+
+    // Função para criar o labirinto
+    function createGrid() {
+      container.innerHTML = "";
+      cells.length = 0;
+
+      for (let i = 0; i < gridSize; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        if (Math.random() < 0.3 && i !== 0 && i !== exitPosition) {
+          cell.classList.add("wall");
+        }
+        container.appendChild(cell);
+        cells.push(cell);
+      }
+      cells[playerPosition].classList.add("player");
+      cells[exitPosition].classList.add("exit");
+    }
+
+    // Função para mover o jogador
+    function movePlayer(direction) {
+      const currentCell = cells[playerPosition];
+      currentCell.classList.remove("player");
+
+      let nextPosition = playerPosition;
+
+      if (direction === "ArrowUp" && playerPosition >= 5) {
+        nextPosition -= 5;
+      } else if (direction === "ArrowDown" && playerPosition < gridSize - 5) {
+        nextPosition += 5;
+      } else if (direction === "ArrowLeft" && playerPosition % 5 !== 0) {
+        nextPosition -= 1;
+      } else if (direction === "ArrowRight" && (playerPosition + 1) % 5 !== 0) {
+        nextPosition += 1;
+      }
+
+      if (!cells[nextPosition].classList.contains("wall")) {
+        playerPosition = nextPosition;
+      }
+
+      cells[playerPosition].classList.add("player");
+
+      // Verificar vitória
+      if (playerPosition === exitPosition) {
+        endGame("Você Venceu!");
+      }
+    }
+
+    // Função para iniciar o jogo
+    function startGame() {
+      playerPosition = 0;
+      exitPosition = gridSize - 1;
+      timeRemaining = 60;
+      timerDisplay.textContent = timeRemaining;
+      gameOverDisplay.style.display = "none";
+      scoreboard.style.display = "block";
+      createGrid();
+
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeRemaining--;
+        timerDisplay.textContent = timeRemaining;
+        if (timeRemaining <= 0) {
+          endGame("Tempo Esgotado!");
+        }
+      }, 1000);
+    }
+
+    // Função para encerrar o jogo
+    function endGame(message) {
+      clearInterval(timer);
+      gameOverDisplay.style.display = "block";
+      gameOverDisplay.innerHTML = `${message} <br><button onclick="startGame()">Jogar Novamente</button>`;
+      scoreboard.style.display = "none";
+    }
+
+    // Inicializar o jogo
+    startGame();
+  </script>
+</body>
+</html>
